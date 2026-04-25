@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Survei IT Tools</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f8ef7;
+    --accent2: #34d9a5;
+    --accent3: #f7694f;
+    --accent4: #c97cf7;
+    --text: #f0f2f8;
+    --muted: #7a7f9a;
+    --label: #4a4f6a;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  .header {
+    padding: 32px 40px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .header-title {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(79,142,247,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(79,142,247,0.25);
+  }
+
+  .main {
+    padding: 28px 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .metric {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .metric::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .metric.m1::before { background: var(--accent); }
+  .metric.m2::before { background: var(--accent2); }
+  .metric.m3::before { background: var(--accent3); }
+  .metric.m4::before { background: var(--accent4); }
+
+  .metric-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .metric-value {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .metric-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .m1 .metric-value { color: var(--accent); }
+  .m2 .metric-value { color: var(--accent2); }
+  .m3 .metric-value { color: var(--accent3); }
+  .m4 .metric-value { color: var(--accent4); }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title span {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .tab:hover {
+    border-color: rgba(255,255,255,0.15);
+    color: var(--text);
+  }
+
+  .tab.active {
+    background: rgba(79,142,247,0.15);
+    border-color: rgba(79,142,247,0.4);
+    color: var(--accent);
+  }
+
+  .list-scroll {
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  .list-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .list-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .list-scroll::-webkit-scrollbar-thumb {
+    background: var(--label);
+    border-radius: 4px;
+  }
+
+  .list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .list-item:last-child {
+    border-bottom: none;
+  }
+
+  .tool-pill {
+    font-size: 10px;
+    font-weight: 500;
+    font-family: 'DM Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    min-width: 58px;
+    text-align: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .pill-blue {
+    background: rgba(79,142,247,0.15);
+    color: #7ab3f9;
+    border: 1px solid rgba(79,142,247,0.2);
+  }
+
+  .num-pill {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    background: rgba(255,255,255,0.05);
+    color: var(--muted);
+    border-radius: 4px;
+    padding: 2px 7px;
+    min-width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+  }
+
+  .bar-label {
+    color: var(--muted);
+    min-width: 110px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  .bar-val {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    min-width: 28px;
+    text-align: right;
+  }
+
+  .donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .donut-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend-name {
+    color: var(--muted);
+  }
+
+  .legend-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    margin-left: auto;
+    min-width: 30px;
+    text-align: right;
+  }
+
+  @media (max-width: 900px) {
+    .main {
+      padding: 20px 16px;
+    }
+
+    .header {
+      padding: 20px 16px 16px;
+    }
+
+    .metrics {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .metrics {
+      grid-template-columns: 1fr;
+    }
+
+    .donut-wrap {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">Survei Pemetaan IT Tools &amp; Usulan Perbaikan</div>
+    <div class="header-sub">April 2026 · Telkom / Divisi Lapangan &amp; Helpdesk</div>
+  </div>
+  <div class="badge">81 Responden</div>
+</div>
+
+<div class="main">
+
+  <div class="metrics">
+    <div class="metric m1">
+      <div class="metric-label">Total Responden</div>
+      <div class="metric-value">81</div>
+      <div class="metric-sub">April 2026</div>
+    </div>
+
+    <div class="metric m2">
+      <div class="metric-label">IT Tools Terpopuler</div>
+      <div class="metric-value">INSERA</div>
+      <div class="metric-sub">48 responden · seri dengan LENSA</div>
+    </div>
+
+    <div class="metric m3">
+      <div class="metric-label">Total Kendala</div>
+      <div class="metric-value">236</div>
+      <div class="metric-sub">dari kolom Kendala 1–3</div>
+    </div>
+
+    <div class="metric m4">
+      <div class="metric-label">Usulan Masuk</div>
+      <div class="metric-value">227</div>
+      <div class="metric-sub">dari kolom Usulan 1–3</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Top 10 IT Tools Digunakan <span>(responden unik dari 81)</span></div>
+      <div id="toolBars"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Distribusi Jabatan</div>
+      <div class="donut-wrap">
+        <div style="position:relative;width:140px;height:140px;flex-shrink:0;">
+          <canvas id="donutChart"></canvas>
+        </div>
+        <div class="donut-legend"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-title">IT Tools per Jabatan <span>· Klik tab untuk filter</span></div>
+    <div class="tabs" id="posTabs"></div>
+    <div style="position:relative;height:220px;">
+      <canvas id="posChart"></canvas>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Kendala yang Dilaporkan <span>· Filter per tool</span></div>
+      <div class="tabs" id="kendalaFilters"></div>
+      <div class="list-scroll" id="kendalaList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Usulan Perbaikan <span>· Dirangkum dari responden</span></div>
+      <div class="list-scroll" id="usulanList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const summary = {
+  totalRespondents: 81,
+  topTool: "INSERA",
+  topToolUsage: 48,
+  topToolNote: "48 responden · seri dengan LENSA",
+  totalKendala: 236,
+  totalUsulan: 227,
+  period: "April 2026"
+};
+
+const tools = [
+  {name:"INSERA", val:48},
+  {name:"LENSA", val:48},
+  {name:"IBOOSTER", val:39},
+  {name:"WFM", val:36},
+  {name:"ACS", val:36},
+  {name:"PROMAN", val:29},
+  {name:"KPRO", val:27},
+  {name:"TACTICAL", val:27},
+  {name:"LENSA FLOW", val:20},
+  {name:"UIM", val:20}
+];
+
+const positions = [
+  {name:"Helpdesk (HD)", short:"HD", count:33},
+  {name:"HSA", short:"HSA", count:24},
+  {name:"Korlap", short:"Korlap", count:14},
+  {name:"OSA", short:"OSA", count:10}
+];
+
+const posTool = {
+  HD: {
+    labels:["INSERA","IBOOSTER","WFM","ACS","UIM"],
+    data:[25,22,22,20,17]
+  },
+  HSA: {
+    labels:["LENSA","TACTICAL","INSERA","KPRO","LENSA FLOW"],
+    data:[21,15,14,14,9]
+  },
+  Korlap: {
+    labels:["LENSA","INSERA","IBOOSTER","BIMA","ACS"],
+    data:[8,7,6,6,5]
+  },
+  OSA: {
+    labels:["LENSA","TACTICAL","KPRO","WFM","ALISTA"],
+    data:[8,6,4,4,4]
+  }
+};
+
+const kendalas = [
+  {tool:"INSERA", text:"Sering lambat, error, atau “joget” saat digunakan pada jam aktif."},
+  {tool:"INSERA", text:"Tiket assurance tidak langsung closed dan kadang perlu sinkronisasi ulang."},
+  {tool:"INSERA", text:"Tiket yang dibuat dari DSC kadang tidak masuk atau terlambat terbaca di INSERA."},
+  {tool:"INSERA", text:"Proses unduh/export dan pembacaan tiket dirasakan lebih lambat dari kebutuhan operasional."},
+
+  {tool:"LENSA", text:"Close order via Lensa sering gagal, ngebug, atau tidak langsung ter-update."},
+  {tool:"LENSA", text:"Dashboard produktivitas Lensa delay dan tidak on-time untuk monitoring lapangan."},
+  {tool:"LENSA", text:"Web Flow Lensa sangat lelet; hasil close teknisi kadang belum sinkron ke BIMA."},
+  {tool:"LENSA", text:"Menu inbox BAI dan informasi reject/reopen QC2 belum cukup mudah dicari."},
+
+  {tool:"LENSA FLOW", text:"Tahapan progres teknisi di lapangan kadang tertahan dan tidak bisa closed."},
+  {tool:"LENSA FLOW", text:"Sering terjadi gangguan sehingga pekerjaan teknisi ikut tertunda."},
+  {tool:"LENSA FLOW", text:"Update dashboard dan status pekerjaan masih lambat."},
+  {tool:"LENSA FLOW", text:"Tiket fallout/folot sulit muncul atau sulit dideteksi ketika dibutuhkan."},
+
+  {tool:"WFM", text:"Sering gangguan/error dan beberapa task order tidak sinkron."},
+  {tool:"WFM", text:"User WFM masih sering terblokir atau terkendala saat login."},
+  {tool:"WFM", text:"Monitoring harian belum sepenuhnya real-time untuk kebutuhan helpdesk dan lapangan."},
+  {tool:"WFM", text:"Beberapa responden menilai fungsi WFM tumpang tindih dengan INSERA/BIMA."},
+
+  {tool:"ACS", text:"User sering terblokir dan perlu reset akses berkala."},
+  {tool:"ACS", text:"Menu config ONT/SSID tidak selalu tersedia sehingga menghambat bantuan ke teknisi."},
+  {tool:"ACS", text:"Akses kadang lambat ketika dibutuhkan untuk pengecekan cepat."},
+
+  {tool:"IBOOSTER", text:"Sering auto logout; durasi sesi login dianggap terlalu singkat."},
+  {tool:"IBOOSTER", text:"Pengukuran massal ODP masih menyulitkan jika harus memasukkan daftar user satu per satu."},
+  {tool:"IBOOSTER", text:"Sebagian pengguna belum familiar dan masih membutuhkan sosialisasi penggunaan."},
+  {tool:"IBOOSTER", text:"Integrasi dengan tools lain belum sepenuhnya praktis untuk monitoring gangguan."},
+
+  {tool:"BIMA", text:"Order atau RE masuk belum lengkap, terutama informasi ODP tujuan."},
+  {tool:"BIMA", text:"Sering error/joget dan perlu sinkron dengan hasil close di Lensa."},
+  {tool:"BIMA", text:"Fungsi dinilai overlap dengan INSERA atau WFM sehingga membingungkan pengguna."},
+
+  {tool:"PROMAN", text:"Sering keluar sendiri atau terkunci sehingga harus login ulang."},
+  {tool:"PROMAN", text:"Tiket kadang tidak terbaca dan proses create tiket terkendala."},
+  {tool:"PROMAN", text:"Sistem tidak selalu nyaman dipakai bersamaan oleh beberapa pengguna."},
+
+  {tool:"KPRO", text:"Sebagian user masih meminjam akun dan belum memiliki akses sendiri."},
+  {tool:"KPRO", text:"Session kadang timeout dan pengguna harus login ulang."},
+  {tool:"KPRO", text:"Akses approval atau proses tertentu masih terbatas pada beberapa pengguna."},
+
+  {tool:"TACTICAL", text:"User officer hanya bisa viewer dan belum bisa melakukan approval."},
+  {tool:"TACTICAL", text:"Proses assign order ke teknisi pernah lambat dan menghambat pekerjaan."},
+  {tool:"TACTICAL", text:"Sering membutuhkan OTP atau bantuan user lain karena akses belum mandiri."},
+
+  {tool:"ALISTA", text:"Akses QE/reg material kadang error dan eskalasi grup lambat ditindaklanjuti."},
+  {tool:"ALISTA", text:"Aplikasi kadang tidak bisa digunakan atau tidak bisa edit material."},
+
+  {tool:"UIM", text:"Fitur pencarian data tertentu seperti TV/pass TV dirasakan tidak semudah sebelumnya."}
+];
+
+const usulans = [
+  "Kurangi jumlah tools dan integrasikan fungsi yang tumpang tindih, terutama INSERA, BIMA, WFM, dan LENSA.",
+  "Prioritaskan perbaikan stabilitas INSERA karena banyak responden menyebut lambat, error, atau “joget”.",
+  "Percepat update dashboard Lensa/Lensa Flow agar status close teknisi lebih real-time dan tidak perlu sinkron manual.",
+  "Buka atau kembalikan menu config ONT/SSID di ACS agar helpdesk bisa membantu teknisi lebih cepat.",
+  "Perpanjang durasi sesi IBOOSTER dan kurangi auto logout agar pekerjaan pengukuran tidak terputus.",
+  "Lengkapi data order/RE di BIMA, terutama informasi ODP tujuan dan integrasi dengan hasil close Lensa.",
+  "Sediakan user resmi untuk tools yang masih memakai akun pinjaman, seperti KPRO, Tactical, dan NMS.",
+  "Tambahkan fitur pencarian inbox BAI serta keterangan reject/reopen QC2 pada Lensa.",
+  "Lakukan maintenance rutin dan siapkan respons IT yang lebih cepat saat tools gangguan.",
+  "Pengadaan/perbaikan laptop untuk Korlap perlu dipertimbangkan agar operasional tidak terhambat perangkat.",
+  "Tambahkan fitur monitoring progres teknisi dalam satu dashboard terpadu.",
+  "Adakan sosialisasi/training berkala untuk tools yang belum familiar bagi pengguna."
+];
+
+const barColors = [
+  "#4f8ef7",
+  "#34d9a5",
+  "#f7694f",
+  "#c97cf7",
+  "#f7c94f",
+  "#4fccf7",
+  "#f7a14f",
+  "#a1f74f",
+  "#f74fa1",
+  "#7af7c9"
+];
+
+const tabLabels = {
+  HD: "Helpdesk (HD)",
+  HSA: "HSA",
+  Korlap: "Korlap",
+  OSA: "OSA"
+};
+
+let posChart;
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, function(ch) {
+    return {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "'": "&#39;",
+      '"': "&quot;"
+    }[ch];
+  });
+}
+
+function updateStaticText() {
+  const badge = document.querySelector(".badge");
+  if (badge) badge.textContent = `${summary.totalRespondents} Responden`;
+
+  const metricCards = document.querySelectorAll(".metric");
+
+  if (metricCards[0]) {
+    metricCards[0].querySelector(".metric-value").textContent = summary.totalRespondents;
+    metricCards[0].querySelector(".metric-sub").textContent = summary.period;
+  }
+
+  if (metricCards[1]) {
+    metricCards[1].querySelector(".metric-value").textContent = summary.topTool;
+    metricCards[1].querySelector(".metric-sub").textContent = summary.topToolNote;
+  }
+
+  if (metricCards[2]) {
+    metricCards[2].querySelector(".metric-value").textContent = summary.totalKendala;
+    metricCards[2].querySelector(".metric-sub").textContent = "dari kolom Kendala 1–3";
+  }
+
+  if (metricCards[3]) {
+    metricCards[3].querySelector(".metric-value").textContent = summary.totalUsulan;
+    metricCards[3].querySelector(".metric-sub").textContent = "dari kolom Usulan 1–3";
+  }
+}
+
+function renderToolBars() {
+  const el = document.getElementById("toolBars");
+  if (!el) return;
+
+  const maxVal = Math.max(...tools.map(t => t.val));
+
+  el.innerHTML = tools.map((t, i) => `
+    <div class="bar-row">
+      <div class="bar-label">${escapeHtml(t.name)}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${Math.round(t.val / maxVal * 100)}%;background:${barColors[i % barColors.length]}"></div>
+      </div>
+      <div class="bar-val">${t.val}</div>
+    </div>
+  `).join("");
+}
+
+function renderDonut() {
+  const legend = document.querySelector(".donut-legend");
+
+  if (legend) {
+    legend.innerHTML = positions.map((p, i) => `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${barColors[i]}"></div>
+        <span class="legend-name">${escapeHtml(p.name)}</span>
+        <span class="legend-count">${p.count}</span>
+      </div>
+    `).join("");
+  }
+
+  const canvas = document.getElementById("donutChart");
+  if (!canvas || typeof Chart === "undefined") return;
+
+  new Chart(canvas, {
+    type: "doughnut",
+    data: {
+      labels: positions.map(p => p.name),
+      datasets: [{
+        data: positions.map(p => p.count),
+        backgroundColor: positions.map((_, i) => barColors[i]),
+        borderWidth: 2,
+        borderColor: "#1a1d27"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "68%",
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          enabled: true
+        }
+      }
+    }
+  });
+}
+
+function renderPositionTabs() {
+  const tabs = document.getElementById("posTabs");
+  if (!tabs) return;
+
+  tabs.innerHTML = Object.keys(posTool).map((key, i) => `
+    <button class="tab ${i === 0 ? "active" : ""}" onclick="switchPos('${key}', this)">
+      ${tabLabels[key] || key}
+    </button>
+  `).join("");
+}
+
+function renderPositionChart(defaultPos = "HD") {
+  const canvas = document.getElementById("posChart");
+  if (!canvas || typeof Chart === "undefined") return;
+
+  posChart = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: posTool[defaultPos].labels,
+      datasets: [{
+        data: posTool[defaultPos].data,
+        backgroundColor: barColors,
+        borderRadius: 5,
+        barThickness: 30
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: "#7a7f9a",
+            font: {
+              family: "DM Mono",
+              size: 11
+            }
+          },
+          grid: {
+            color: "rgba(255,255,255,0.04)"
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: "#7a7f9a",
+            font: {
+              size: 11
+            },
+            precision: 0
+          },
+          grid: {
+            color: "rgba(255,255,255,0.04)"
+          }
+        }
+      }
+    }
+  });
+}
+
+function switchPos(pos, btn) {
+  document.querySelectorAll("#posTabs .tab").forEach(b => b.classList.remove("active"));
+
+  if (btn) btn.classList.add("active");
+
+  if (!posChart || !posTool[pos]) return;
+
+  posChart.data.labels = posTool[pos].labels;
+  posChart.data.datasets[0].data = posTool[pos].data;
+  posChart.update();
+}
+
+function renderKendalaFilters() {
+  const filters = ["ALL", "INSERA", "LENSA", "WFM", "ACS", "IBOOSTER", "BIMA"];
+  const el = document.getElementById("kendalaFilters");
+
+  if (!el) return;
+
+  el.innerHTML = filters.map((f, i) => `
+    <button class="tab ${i === 0 ? "active" : ""}" onclick="filterK('${f}', this)">
+      ${f === "ALL" ? "Semua" : f}
+    </button>
+  `).join("");
+}
+
+function filterK(filter, btn) {
+  document.querySelectorAll("#kendalaFilters .tab").forEach(b => b.classList.remove("active"));
+
+  if (btn) btn.classList.add("active");
+
+  const items = filter === "ALL" ? kendalas : kendalas.filter(k => k.tool === filter);
+  const target = document.getElementById("kendalaList");
+
+  if (!target) return;
+
+  target.innerHTML = items.length ? items.map(k => `
+    <div class="list-item">
+      <span class="tool-pill pill-blue">${escapeHtml(k.tool)}</span>
+      <span>${escapeHtml(k.text)}</span>
+    </div>
+  `).join("") : `
+    <div class="list-item">
+      <span>Tidak ada data untuk filter ini.</span>
+    </div>
+  `;
+}
+
+function renderUsulanList() {
+  const target = document.getElementById("usulanList");
+  if (!target) return;
+
+  target.innerHTML = usulans.map((u, i) => `
+    <div class="list-item">
+      <span class="num-pill">${i + 1}</span>
+      <span>${escapeHtml(u)}</span>
+    </div>
+  `).join("");
+}
+
+updateStaticText();
+renderToolBars();
+renderDonut();
+renderPositionTabs();
+renderPositionChart("HD");
+renderKendalaFilters();
+filterK("ALL", document.querySelector("#kendalaFilters .tab"));
+renderUsulanList();
+</script>
+
+</body>
+</html>
